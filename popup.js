@@ -338,6 +338,58 @@ fileImport.addEventListener('change', async (e) => {
   }
 });
 
+async function testSingleStep(step) {
+  try {
+    addLogEntry('info', 'Test singolo step avviato', { stepType: step.type });
+    const tab = await getActiveTab();
+    if (!tab?.id) {
+      alert('Nessuna scheda attiva disponibile per il test.');
+      return;
+    }
+    
+    setStatus('Test in corso...');
+    await ensureContentRunner(tab.id);
+    
+    const port = chrome.tabs.connect(tab.id, { name: 'macro-automator-test' });
+    
+    const testPromise = new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        port.disconnect();
+        reject(new Error('Timeout durante il test'));
+      }, 30000);
+      
+      port.onMessage.addListener((msg) => {
+        clearTimeout(timeout);
+        port.disconnect();
+        if (msg.kind === 'TEST_SUCCESS') {
+          resolve(msg);
+        } else if (msg.kind === 'TEST_ERROR') {
+          reject(new Error(msg.error));
+        }
+      });
+      
+      port.onDisconnect.addListener(() => {
+        clearTimeout(timeout);
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message));
+        }
+      });
+      
+      port.postMessage({ kind: 'TEST_STEP', step });
+    });
+    
+    const result = await testPromise;
+    setStatus('Test completato con successo');
+    notify('Test completato');
+    addLogEntry('info', 'Test singolo step completato', { stepType: step.type, success: true });
+  } catch (error) {
+    setStatus('Test fallito: ' + error.message);
+    notify('Test fallito');
+    addLogEntry('error', 'Test singolo step fallito', { stepType: step.type, error: error.message });
+    alert('Test fallito: ' + error.message);
+  }
+}
+
 btnAddSlot.addEventListener('click', () => addSlot());
 btnSaveMacro.addEventListener('click', async () => {
   const macro = readMacroFromUI();
@@ -363,7 +415,26 @@ function addSlot() {
   const typeSel = node.querySelector('.slot-type');
   const fields = node.querySelector('.slot-fields');
   const preview = node.querySelector('.slot-preview');
-  node.querySelector('.slot-del').addEventListener('click', () => node.remove());
+  const btnTest = node.querySelector('.slot-test');
+  const btnDel = node.querySelector('.slot-del');
+  
+  btnDel.addEventListener('click', () => node.remove());
+  
+  btnTest.addEventListener('click', async () => {
+    const step = readStepFromFields(typeSel.value, fields);
+    if (!step.type) return;
+    
+    // Disabilita il pulsante durante il test
+    btnTest.disabled = true;
+    btnTest.textContent = '⏳ test...';
+    
+    try {
+      await testSingleStep(step);
+    } finally {
+      btnTest.disabled = false;
+      btnTest.textContent = '🔴 test';
+    }
+  });
 
   typeSel.addEventListener('change', () => {
     buildFields(typeSel.value, fields);

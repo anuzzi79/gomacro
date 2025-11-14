@@ -397,6 +397,22 @@
   }
 
   chrome.runtime.onConnect.addListener((port) => {
+    if (port.name === 'macro-automator-test') {
+      port.onMessage.addListener(async (msg) => {
+        if (msg.kind !== 'TEST_STEP') return;
+        const step = msg.step;
+        const options = { defaultTimeout: 5000, highlightMs: 800, failFast: true };
+        
+        try {
+          const res = await performStep(step, options);
+          port.postMessage({ kind: 'TEST_SUCCESS', label: res?.label || step.type });
+        } catch (err) {
+          port.postMessage({ kind: 'TEST_ERROR', error: err.message || String(err) });
+        }
+      });
+      return;
+    }
+    
     if (port.name !== 'macro-automator') return;
     port.onDisconnect.addListener(() => {
       flushSequenceCache();
