@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Macro Automator",
+  "version": "1.0.0",
+  "description": "Create and run simple DOM automation macros from the extension popup.",
+  "action": {
+    "default_title": "Macro Automator"
+  },
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "windows",
+    "scripting",
+    "storage",
+    "notifications"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "sw.js"
+  }
+}
