@@ -160,7 +160,7 @@ async function loadMacros() {
 }
 async function saveMacros(macros) {
   try {
-    await chrome.storage.sync.set({ [STORAGE_KEYS.MACROS]: macros });
+  await chrome.storage.sync.set({ [STORAGE_KEYS.MACROS]: macros });
   } catch (error) {
     console.error('Failed to save macros', error);
     setStatus('Errore salvataggio archivio');
@@ -630,6 +630,10 @@ function buildFields(type, container, preset = null) {
     row.append(textInput, randomBtn);
     wrap.append(label, row, menu);
     container.appendChild(wrap);
+  } else if (type === 'selectOption') {
+    add('Selettore (CSS o XPath)', preset?.selector || '');
+    add('Valore opzione (attributo value)', preset?.value || '');
+    add('Testo opzione (fallback)', preset?.text || '');
   } else if (type === 'pressKey') {
     add('Tasto (es. Enter, Tab, Escape)', preset?.key || 'Enter');
   } else if (type === 'navigate') {
@@ -652,6 +656,14 @@ function readStepFromFields(type, container) {
         randomPreset: randomPreset || undefined
       };
     }
+    case 'selectOption': {
+      return {
+        type,
+        selector: inputs[0] || '',
+        value: inputs[1] || '',
+        text: inputs[2] || ''
+      };
+    }
     case 'pressKey': return { type, key: inputs[0] || 'Enter' };
     case 'navigate': return { type, url: inputs[0] || '' };
     default: return { type };
@@ -668,6 +680,12 @@ function prettyStep(step) {
         return `Scrivi ${getRandomPresetLabel(step.randomPreset)} → ${step.selector}`;
       }
       return `Scrivi "${step.text ?? ''}" → ${step.selector}`;
+    }
+    case 'selectOption': {
+      const label = step.value
+        ? `value="${step.value}"`
+        : (step.text ? `"${step.text}"` : 'opzione');
+      return `Seleziona ${label} → ${step.selector}`;
     }
     case 'pressKey': return `Premi ${step.key}`;
     case 'navigate': return `Apri URL → ${step.url}`;

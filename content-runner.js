@@ -207,6 +207,25 @@
     setTimeout(()=>{ el.style.outline = prevOutline || ''; }, ms);
   }
 
+  function dispatchRichClick(el){
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const clientX = rect.left + (rect.width || 0) / 2;
+    const clientY = rect.top + (rect.height || 0) / 2;
+    const eventInit = {
+      bubbles: true,
+      cancelable: true,
+      view: window,
+      clientX,
+      clientY,
+      buttons: 1
+    };
+    ['pointerdown','mousedown','pointerup','mouseup','click'].forEach(type => {
+      const evt = new MouseEvent(type, eventInit);
+      el.dispatchEvent(evt);
+    });
+  }
+
   // Placeholder engine
   async function resolvePlaceholders(text){
     if (typeof text !== 'string') return text;
@@ -291,7 +310,20 @@
     if (step.type === 'click') {
       const el = await waitForSelector(step.selector, timeout);
       highlight(el, true, options.highlightMs);
-      el.click();
+      if (el.matches?.('select')) {
+        el.focus();
+        if (typeof el.showPicker === 'function') {
+          try {
+            el.showPicker();
+          } catch (err) {
+            dispatchRichClick(el);
+          }
+        } else {
+          dispatchRichClick(el);
+        }
+      } else {
+        el.click();
+      }
       return { label: `Clic ${step.selector}` };
     }
     if (step.type === 'type') {
@@ -312,6 +344,26 @@
         ? `Scrivi ${RANDOM_PRESET_LABELS[step.randomPreset] || 'testo random'} → ${step.selector}`
         : `Scrivi → ${step.selector}`;
       return { label };
+    }
+    if (step.type === 'selectOption') {
+      const el = await waitForSelector(step.selector, timeout);
+      const optionsList = Array.from(el?.options || []);
+      let chosen = null;
+      if (step.value) {
+        chosen = optionsList.find(opt => opt.value == step.value);
+      }
+      if (!chosen && step.text) {
+        const targetText = String(step.text).trim().toLowerCase();
+        chosen = optionsList.find(opt => opt.text.trim().toLowerCase() === targetText);
+      }
+      if (!chosen) {
+        throw new Error(`Opzione non trovata (${step.value || step.text || 'n.d.'})`);
+      }
+      el.value = chosen.value;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+      highlight(el, true, options.highlightMs);
+      return { label: `Seleziona ${chosen.text || chosen.value} → ${step.selector}` };
     }
     if (step.type === 'pressKey') {
       const key = step.key || 'Enter';
