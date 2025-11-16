@@ -4,7 +4,18 @@
   "version": "1.0.0",
   "description": "Create and run simple DOM automation macros from the extension popup.",
   "action": {
-    "default_title": "Macro Automator"
+    "default_title": "Macro Automator",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
   },
   "permissions": [
     "activeTab",

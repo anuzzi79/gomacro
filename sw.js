@@ -59,7 +59,7 @@ chrome.action.onClicked.addListener((tab) => {
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg?.kind === 'NOTIFY' && msg?.message) {
-    chrome.notifications.create('', { type: 'basic', iconUrl: 'icon48.png', title: 'Macro Automator', message: msg.message });
+    chrome.notifications.create('', { type: 'basic', iconUrl: 'icons/icon48.png', title: 'Macro Automator', message: msg.message });
     sendResponse({ ok: true });
     return;
   }

@@ -10,21 +10,21 @@
   <header class="topbar">
     <h1>Macro Automator</h1>
     <div class="actions">
-      <button id="btn-create" class="primary">+ Crea macro</button>
-      <button id="btn-export" title="Esporta tutte le macro in formato JSON">Esporta JSON</button>
+      <button id="btn-create" class="primary">+ Create macro</button>
+      <button id="btn-export" title="Export all macros as JSON">Export JSON</button>
       <label class="import-label">
         <input id="file-import" type="file" accept="application/json" hidden>
-        <span class="btn">Importa JSON</span>
+        <span class="btn">Import JSON</span>
       </label>
-      <button id="btn-diagnostics" class="secondary" title="Mostra log di diagnostica">🔍 Diagnostica</button>
-      <button id="btn-close-app" class="ghost close-app" title="Chiudi">✕</button>
+      <button id="btn-diagnostics" class="secondary" title="Show diagnostics log">🔍 Diagnostics</button>
+      <button id="btn-close-app" class="ghost close-app" title="Close">✕</button>
     </div>
   </header>
 
   <section id="macros-list" class="list"></section>
 
   <footer class="statusbar">
-    <div id="status-text">Pronto</div>
+    <div id="status-text">Ready</div>
     <div id="progress"><span id="progress-fill"></span></div>
   </footer>
 
@@ -32,23 +32,23 @@
   <div id="modal-backdrop" class="backdrop hidden"></div>
   <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="modal-header">
-      <h2 id="modal-title">Nuova macro</h2>
-      <button id="modal-close" class="ghost" title="Chiudi">✕</button>
+      <h2 id="modal-title">New macro</h2>
+      <button id="modal-close" class="ghost" title="Close">✕</button>
     </div>
     <div class="modal-body">
       <div class="field">
-        <label>Nome</label>
-        <input id="macro-name" type="text" placeholder="La mia macro" />
+        <label>Name</label>
+        <input id="macro-name" type="text" placeholder="My macro" />
       </div>
 
       <div id="slots" class="slots"></div>
 
       <div class="slot-actions">
-        <button id="btn-add-slot" class="secondary">+ Aggiungi azione</button>
+        <button id="btn-add-slot" class="secondary">+ Add action</button>
       </div>
     </div>
     <div class="modal-footer">
-      <button id="btn-save-macro" class="primary">Salva macro</button>
+      <button id="btn-save-macro" class="primary">Save macro</button>
     </div>
   </div>
 
@@ -56,16 +56,16 @@
     <div class="slot">
       <div class="slot-row">
         <select class="slot-type">
-          <option value="click">Clic</option>
-          <option value="wait">Attesa (ms)</option>
-          <option value="waitFor">Attendi elemento</option>
-          <option value="type">Scrivi testo</option>
-          <option value="pressKey">Premi tasto</option>
-          <option value="navigate">Apri URL</option>
-               <option value="selectOption">Seleziona opzione</option>
+          <option value="click">Click</option>
+          <option value="wait">Wait (ms)</option>
+          <option value="waitFor">Wait for element</option>
+          <option value="type">Type text</option>
+          <option value="pressKey">Press key</option>
+          <option value="navigate">Open URL</option>
+          <option value="selectOption">Select option</option>
         </select>
-        <button class="slot-test ghost" title="Testa questo comando">🔴 test</button>
-        <button class="slot-del ghost" title="Rimuovi azione">🗑</button>
+        <button class="slot-test ghost" title="Test this command">🔴 test</button>
+        <button class="slot-del ghost" title="Remove action">🗑</button>
       </div>
       <div class="slot-fields"></div>
       <div class="slot-preview"></div>
@@ -76,14 +76,14 @@
   <div id="modal-diagnostics-backdrop" class="backdrop hidden"></div>
   <div id="modal-diagnostics" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="diagnostics-title">
     <div class="modal-header">
-      <h2 id="diagnostics-title">Log di Diagnostica</h2>
-      <button id="diagnostics-close" class="ghost" title="Chiudi">✕</button>
+      <h2 id="diagnostics-title">Diagnostics log</h2>
+      <button id="diagnostics-close" class="ghost" title="Close">✕</button>
     </div>
     <div class="modal-body">
       <div id="diagnostics-log" class="diagnostics-log"></div>
     </div>
     <div class="modal-footer">
-      <button id="btn-copy-log" class="primary">📋 Copia log</button>
+      <button id="btn-copy-log" class="primary">📋 Copy log</button>
     </div>
   </div>
 

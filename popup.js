@@ -256,7 +256,7 @@ btnCloseApp?.addEventListener('click', () => {
 });
 
 function openDiagnosticsModal() {
-  addLogEntry('info', 'Modale diagnostica aperto', { logEntries: diagnosticsLog.length });
+  addLogEntry('info', 'Diagnostics modal opened', { logEntries: diagnosticsLog.length });
   updateDiagnosticsLog();
   diagnosticsBackdrop.classList.remove('hidden');
   diagnosticsModal.classList.remove('hidden');
@@ -300,13 +300,13 @@ btnCopyLog?.addEventListener('click', async () => {
   const logText = getLogsAsText();
   try {
     await navigator.clipboard.writeText(logText);
-    btnCopyLog.textContent = '✓ Copiato!';
+    btnCopyLog.textContent = '✓ Copied!';
     setTimeout(() => {
-      btnCopyLog.textContent = '📋 Copia log';
+      btnCopyLog.textContent = '📋 Copy log';
     }, 2000);
   } catch (error) {
-    addLogEntry('error', 'Impossibile copiare il log', { error: error.message });
-    alert('Impossibile copiare il log. Controlla la console per i dettagli.');
+    addLogEntry('error', 'Failed to copy log', { error: error.message });
+    alert('Failed to copy log. Check console for details.');
   }
 });
 
@@ -326,13 +326,13 @@ fileImport.addEventListener('change', async (e) => {
   try {
     const txt = await file.text();
     const parsed = JSON.parse(txt);
-    if (!parsed || !Array.isArray(parsed.macros)) throw new Error('File non valido');
+    if (!parsed || !Array.isArray(parsed.macros)) throw new Error('Invalid file');
     await saveMacros(parsed.macros);
     macrosState = parsed.macros;
     renderList();
-    notify('Importazione completata');
+    notify('Import completed');
   } catch (err) {
-    alert('Importazione fallita: ' + err.message);
+    alert('Import failed: ' + err.message);
   } finally {
     fileImport.value = '';
   }
@@ -340,22 +340,20 @@ fileImport.addEventListener('change', async (e) => {
 
 async function testSingleStep(step) {
   try {
-    addLogEntry('info', 'Test singolo step avviato', { stepType: step.type });
+    addLogEntry('info', 'Single step test started', { stepType: step.type });
     const tab = await getActiveTab();
     if (!tab?.id) {
-      alert('Nessuna scheda attiva disponibile per il test.');
+      alert('No active tab available for testing.');
       return;
     }
-    
-    setStatus('Test in corso...');
+    setStatus('Testing…');
     await ensureContentRunner(tab.id);
-    
     const port = chrome.tabs.connect(tab.id, { name: 'macro-automator-test' });
     
     const testPromise = new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         port.disconnect();
-        reject(new Error('Timeout durante il test'));
+        reject(new Error('Test timeout'));
       }, 30000);
       
       port.onMessage.addListener((msg) => {
@@ -378,35 +376,35 @@ async function testSingleStep(step) {
       port.postMessage({ kind: 'TEST_STEP', step });
     });
     
-    const result = await testPromise;
-    setStatus('Test completato con successo');
-    notify('Test completato');
-    addLogEntry('info', 'Test singolo step completato', { stepType: step.type, success: true });
+    await testPromise;
+    setStatus('Test completed successfully');
+    notify('Test completed');
+    addLogEntry('info', 'Single step test completed', { stepType: step.type, success: true });
   } catch (error) {
-    setStatus('Test fallito: ' + error.message);
-    notify('Test fallito');
-    addLogEntry('error', 'Test singolo step fallito', { stepType: step.type, error: error.message });
-    alert('Test fallito: ' + error.message);
+    setStatus('Test failed: ' + error.message);
+    notify('Test failed');
+    addLogEntry('error', 'Single step test failed', { stepType: step.type, error: error.message });
+    alert('Test failed: ' + error.message);
   }
 }
 
 btnAddSlot.addEventListener('click', () => addSlot());
 btnSaveMacro.addEventListener('click', async () => {
   const macro = readMacroFromUI();
-  if (!macro.name.trim()) return alert('Imposta un nome per la macro');
-  if (!macro.steps.length) return alert('Aggiungi almeno un\'azione');
+  if (!macro.name.trim()) return alert('Please set a name for the macro');
+  if (!macro.steps.length) return alert('Add at least one action');
 
   if (editingIndex === null) {
     macrosState.push(macro);
     editingIndex = macrosState.length - 1;
-    document.getElementById('modal-title').textContent = 'Modifica macro';
+    document.getElementById('modal-title').textContent = 'Edit macro';
   } else {
     macrosState[editingIndex] = macro;
   }
   await saveMacros(macrosState);
   renderList();
-  setStatus('Macro salvata');
-  notify('Macro salvata');
+  setStatus('Macro saved');
+  notify('Macro saved');
 });
 
 function addSlot() {
@@ -720,7 +718,7 @@ function renderList() {
   if (!macrosState.length) {
     const empty = document.createElement('div');
     empty.className = 'muted';
-    empty.textContent = 'Nessuna macro salvata — clicca "Crea macro" per iniziare.';
+    empty.textContent = 'No macros yet — click "Create macro" to get started.';
     listEl.replaceChildren(empty);
     return;
   }
@@ -735,7 +733,7 @@ function renderList() {
     const preview = document.createElement('div');
     preview.className = 'muted';
     const stepsCount = m?.steps?.length || 0;
-    preview.textContent = stepsCount === 1 ? '1 azione' : `${stepsCount} azioni`;
+    preview.textContent = stepsCount === 1 ? '1 action' : `${stepsCount} actions`;
 
     const row = document.createElement('div');
     row.className = 'row';
@@ -755,17 +753,17 @@ function renderList() {
     repeatInput.className = 'repeat-input';
     const storedRepeat = Number(m?.options?.repeat ?? 1);
     repeatInput.value = storedRepeat && storedRepeat > 0 ? String(storedRepeat) : '1';
-    repeatInput.title = 'Numero di esecuzioni consecutive';
+    repeatInput.title = 'Number of consecutive runs';
 
     const repeatMult = document.createElement('span');
     repeatMult.className = 'repeat-mult';
     repeatMult.textContent = '×';
 
-    const bRun = document.createElement('button'); bRun.className='primary'; bRun.textContent='Esegui';
+    const bRun = document.createElement('button'); bRun.className='primary'; bRun.textContent='Run';
     if (isRunningSequence) bRun.disabled = true;
-    const bDup = document.createElement('button'); bDup.textContent='Duplica';
-    const bDel = document.createElement('button'); bDel.textContent='Elimina';
-    const bEdt = document.createElement('button'); bEdt.textContent='Modifica';
+    const bDup = document.createElement('button'); bDup.textContent='Duplicate';
+    const bDel = document.createElement('button'); bDel.textContent='Delete';
+    const bEdt = document.createElement('button'); bEdt.textContent='Edit';
 
     async function persistRepeatValue(value) {
       let repeatVal = Math.floor(Number(value) || 1);
@@ -802,14 +800,14 @@ function renderList() {
       renderList();
     });
     bDel.addEventListener('click', async () => {
-      if (!confirm('Eliminare questa macro?')) return;
+      if (!confirm('Delete this macro?')) return;
       macrosState.splice(idx, 1);
       await saveMacros(macrosState);
       renderList();
     });
     bEdt.addEventListener('click', () => {
       editingIndex = idx;
-      openModal('Modifica macro', m);
+      openModal('Edit macro', m);
     });
 
     btns.append(runGroup, bEdt, bDup, bDel);
@@ -830,7 +828,7 @@ function setProgress(step, total) {
 
 function notify(message) {
   try {
-    chrome.notifications.create('', { type: 'basic', iconUrl: 'icon48.png', title: 'Macro Automator', message });
+    chrome.notifications.create('', { type: 'basic', iconUrl: 'icons/icon48.png', title: 'Macro Automator', message });
   } catch (e) {
     setStatus(message);
   }
