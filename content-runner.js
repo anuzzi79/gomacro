@@ -328,11 +328,36 @@
     }
     if (step.type === 'type') {
       const el = await waitForSelector(step.selector, timeout);
-      let rawText = '';
+      let rawText = step.text || '';
       if (step.randomPreset) {
-        rawText = generateRandomText(step.randomPreset) || '';
-      } else {
-        rawText = step.text || '';
+        try {
+          const fakerModule = await import(chrome.runtime.getURL('vendor/faker-esm/index.mjs'));
+          const f = fakerModule.faker || fakerModule.default?.faker || fakerModule.default || fakerModule;
+          const map = {
+            firstName: () => f.person.firstName(),
+            lastName: () => f.person.lastName(),
+            fullName: () => f.person.fullName(),
+            userName: () => f.internet.userName(),
+            email: () => f.internet.email(),
+            password: () => f.internet.password(),
+            phone: () => f.phone.number(),
+            color: () => f.color.human(),
+            uuid: () => f.string.uuid(),
+            number4: () => String(f.number.int({ min: 1000, max: 9999 })),
+            company: () => f.company.name(),
+            jobTitle: () => f.person.jobTitle(),
+            city: () => f.location.city(),
+            country: () => f.location.country(),
+            url: () => f.internet.url(),
+            ip: () => f.internet.ip(),
+            word: () => f.word.sample(),
+            sentence: () => f.lorem.sentence(),
+            paragraph: () => f.lorem.paragraph()
+          };
+          rawText = (map[step.randomPreset] || map.word)();
+        } catch (err) {
+          rawText = 'Faker not available for lack of internet';
+        }
       }
       const textResolved = await resolvePlaceholders(rawText);
       const text = typeof textResolved === 'string' ? textResolved : String(textResolved ?? rawText ?? '');
@@ -341,8 +366,8 @@
       el.dispatchEvent(new Event('input', { bubbles: true }));
       highlight(el, true, options.highlightMs);
       const label = step.randomPreset
-        ? `Scrivi ${RANDOM_PRESET_LABELS[step.randomPreset] || 'testo random'} → ${step.selector}`
-        : `Scrivi → ${step.selector}`;
+        ? `Type (faker:${step.randomPreset}) → ${step.selector}`
+        : `Type → ${step.selector}`;
       return { label };
     }
     if (step.type === 'selectOption') {

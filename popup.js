@@ -4,19 +4,31 @@ const STORAGE_KEYS = {
   SEQUENCES: 'sequences'
 };
 
-const RANDOM_PRESETS = {
-  word: { label: 'Parola casuale' },
-  sentence: { label: 'Frase (3 parole)', description: 'Genera tre parole casuali' },
-  name: { label: 'Nome proprio' },
-  fullName: { label: 'Nome e cognome' },
-  email: { label: 'Email realistica' },
-  color: { label: 'Colore' },
-  uuid: { label: 'UUID v4' },
-  number4: { label: 'Numero a 4 cifre' }
+// Faker-backed presets (labels for UI only)
+const FAKER_PRESETS = {
+  firstName: 'First name',
+  lastName: 'Last name',
+  fullName: 'Full name',
+  userName: 'Username',
+  email: 'Email',
+  password: 'Password',
+  phone: 'Phone',
+  color: 'Color',
+  uuid: 'UUID v4',
+  number4: '4-digit number',
+  company: 'Company',
+  jobTitle: 'Job title',
+  city: 'City',
+  country: 'Country',
+  url: 'URL',
+  ip: 'IP address',
+  word: 'Word',
+  sentence: 'Sentence',
+  paragraph: 'Paragraph'
 };
 
 function getRandomPresetLabel(key) {
-  return RANDOM_PRESETS[key]?.label || 'Testo random';
+  return FAKER_PRESETS[key] || 'Random text';
 }
 
 // === Diagnostics Logging System ===
@@ -543,12 +555,12 @@ function buildFields(type, container, preset = null) {
     const select = document.createElement('select');
     const defaultOption = document.createElement('option');
     defaultOption.value = '';
-    defaultOption.textContent = 'Nessuno (usa testo fisso)';
+    defaultOption.textContent = 'None (use fixed text)';
     select.appendChild(defaultOption);
-    Object.entries(RANDOM_PRESETS).forEach(([key, meta]) => {
+    Object.entries(FAKER_PRESETS).forEach(([key, labelText]) => {
       const opt = document.createElement('option');
       opt.value = key;
-      opt.textContent = meta.label;
+      opt.textContent = labelText;
       select.appendChild(opt);
     });
     select.value = randomPreset;

@@ -30,5 +30,16 @@
   ],
   "background": {
     "service_worker": "sw.js"
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "faker-adapter.js",
+        "vendor/faker.umd.min.js",
+        "vendor/faker-esm/*",
+        "vendor/faker-esm/locale/*"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }
