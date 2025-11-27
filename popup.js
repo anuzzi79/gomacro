@@ -160,9 +160,39 @@ chrome.tabs.onRemoved.addListener((tabId) => {
   }
 });
 
+async function migrateFromSyncToLocal() {
+  try {
+    // Controlla se ci sono dati in sync da migrare
+    const syncData = await chrome.storage.sync.get([STORAGE_KEYS.MACROS, STORAGE_KEYS.SEQUENCES]);
+    const localData = await chrome.storage.local.get([STORAGE_KEYS.MACROS, STORAGE_KEYS.SEQUENCES]);
+    
+    // Se local è vuoto e sync ha dati, migra
+    const hasSyncMacros = syncData[STORAGE_KEYS.MACROS] && syncData[STORAGE_KEYS.MACROS].length > 0;
+    const hasLocalMacros = localData[STORAGE_KEYS.MACROS] && localData[STORAGE_KEYS.MACROS].length > 0;
+    
+    if (hasSyncMacros && !hasLocalMacros) {
+      console.log('Migrazione macro da sync a local...');
+      await chrome.storage.local.set({
+        [STORAGE_KEYS.MACROS]: syncData[STORAGE_KEYS.MACROS]
+      });
+      console.log(`Migrate ${syncData[STORAGE_KEYS.MACROS].length} macro(s) da sync a local`);
+    }
+    
+    // Migra anche le sequenze se presenti
+    if (syncData[STORAGE_KEYS.SEQUENCES] && !localData[STORAGE_KEYS.SEQUENCES]) {
+      await chrome.storage.local.set({
+        [STORAGE_KEYS.SEQUENCES]: syncData[STORAGE_KEYS.SEQUENCES]
+      });
+      console.log('Sequenze migrate da sync a local');
+    }
+  } catch (error) {
+    console.warn('Errore durante migrazione da sync a local', error);
+  }
+}
+
 async function loadMacros() {
   try {
-    const result = await chrome.storage.sync.get(STORAGE_KEYS.MACROS);
+    const result = await chrome.storage.local.get(STORAGE_KEYS.MACROS);
     return result?.[STORAGE_KEYS.MACROS] || [];
   } catch (error) {
     console.error('Failed to load macros', error);
@@ -172,7 +202,7 @@ async function loadMacros() {
 }
 async function saveMacros(macros) {
   try {
-  await chrome.storage.sync.set({ [STORAGE_KEYS.MACROS]: macros });
+  await chrome.storage.local.set({ [STORAGE_KEYS.MACROS]: macros });
   } catch (error) {
     console.error('Failed to save macros', error);
     setStatus('Errore salvataggio archivio');
@@ -1110,6 +1140,8 @@ async function runMacro(macro, repeat = 1) {
 
 // init
 (async function init(){
+  // Migra i dati da sync a local se necessario
+  await migrateFromSyncToLocal();
   macrosState = await loadMacros();
   renderList();
   setStatus('Pronto');

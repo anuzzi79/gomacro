@@ -113,7 +113,7 @@
 
   function storageGet(defaults) {
     return new Promise((resolve) => {
-      chrome.storage.sync.get(defaults, data => {
+      chrome.storage.local.get(defaults, data => {
         if (chrome.runtime.lastError) {
           console.warn('storage.get error', chrome.runtime.lastError);
           resolve(defaults || {});
@@ -126,7 +126,7 @@
 
   function storageSet(payload) {
     return new Promise((resolve) => {
-      chrome.storage.sync.set(payload, () => {
+      chrome.storage.local.set(payload, () => {
         if (chrome.runtime.lastError) {
           console.warn('storage.set error', chrome.runtime.lastError);
         }
